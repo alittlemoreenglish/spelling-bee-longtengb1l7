@@ -1,0 +1,303 @@
+<html><head><base href="." />
+<title>Spelling Bee - Vocabulary Game</title>
+<style>
+  body {
+    font-family: Arial, sans-serif;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+    min-height: 100vh;
+    margin: 0;
+    padding: 20px;
+  }
+
+  .game-container {
+    background: white;
+    border-radius: 15px;
+    padding: 2rem;
+    box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+    text-align: center;
+    max-width: 600px;
+    width: 100%;
+    margin-bottom: 20px;
+  }
+
+  .word-display {
+    font-size: 2rem;
+    margin: 1rem 0;
+    color: #2c3e50;
+    min-height: 3rem;
+  }
+
+  .input-area {
+    margin: 1rem 0;
+  }
+
+  input {
+    padding: 0.8rem;
+    font-size: 1.2rem;
+    border: 2px solid #ddd;
+    border-radius: 8px;
+    width: 80%;
+    max-width: 300px;
+    margin-bottom: 1rem;
+  }
+
+  button {
+    background: #3498db;
+    color: white;
+    border: none;
+    padding: 0.8rem 1.5rem;
+    font-size: 1.1rem;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: transform 0.2s;
+  }
+
+  button:hover {
+    transform: scale(1.05);
+    background: #2980b9;
+  }
+
+  button:disabled {
+    background: #bdc3c7;
+    cursor: not-allowed;
+  }
+
+  .score {
+    font-size: 1.2rem;
+    margin: 1rem 0;
+    color: #34495e;
+  }
+
+  .feedback {
+    min-height: 2rem;
+    margin: 1rem 0;
+    font-weight: bold;
+  }
+
+  .correct {
+    color: #27ae60;
+    animation: popIn 0.5s ease;
+  }
+
+  .incorrect {
+    color: #c0392b;
+    animation: shake 0.5s ease;
+  }
+
+  .bee-icon {
+    font-size: 2rem;
+    transition: transform 0.5s ease;
+  }
+
+  .bee-grow {
+    animation: growBee 0.5s ease forwards;
+  }
+
+  .level-up {
+    color: #f39c12;
+    font-size: 1.3rem;
+    font-weight: bold;
+    margin: 1rem 0;
+    animation: popIn 0.5s ease;
+  }
+
+  footer {
+    color: #666;
+    font-size: 0.9rem;
+    text-align: center;
+    padding: 1rem;
+    width: 100%;
+    background: rgba(255, 255, 255, 0.8);
+    border-radius: 8px;
+  }
+
+  @keyframes growBee {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.5); }
+    75% { transform: scale(1.3); }
+    100% { transform: scale(1.25); }
+  }
+
+  @keyframes popIn {
+    0% { transform: scale(0.8); opacity: 0; }
+    100% { transform: scale(1); opacity: 1; }
+  }
+
+  @keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-10px); }
+    75% { transform: translateX(10px); }
+  }
+</style>
+</head>
+<body>
+  <div class="game-container">
+    <h1>Spelling Bee 🐝</h1>
+    <p> </p>
+    <div class="word-display" id="wordDisplay">Press Start to begin!</div>
+    <div class="input-area">
+      <input type="text" id="userInput" placeholder="Type the word here..." disabled>
+      <br>
+      <button id="startBtn">Start Game</button>
+      <button id="speakBtn" disabled>🔊 Hear Word</button>
+    </div>
+    <div class="feedback" id="feedback"></div>
+    <div class="level-up" id="levelUp"></div>
+    <div class="score" id="score">Score: 0</div>
+    <div class="bee-icon" id="beeIcon">🐝</div>
+  </div>
+  <footer>
+    Author: Aaron Shi. Released in 2024. Last Update on December 6, 2024.
+  </footer>
+
+<script>
+const words = [
+  {word: "triumph", definition: "a great success or achievement", chinese: "勝利；成就"},
+  {word: "apply", definition: "to officially request something, such as a job or a place at a university", chinese: "申請；報名"},
+  {word: "application", definition: "a formal request for something, such as a job or place at a university", chinese: "申請；申請書"},
+  {word: "applicant", definition: "a person who applies for something, such as a job or university admission", chinese: "申請人"},
+  {word: "instrument", definition: "an item whose main use is to make music, such as a guitar or violin", chinese: "樂器"},
+  {word: "somehow", definition: "in a manner that is not clear or easily understood", chinese: "以某種方式；不知怎麼地"},
+  {word: "barely", definition: "almost not", chinese: "幾乎不"},
+  {word: "bare", definition: "not covered or clothed", chinese: "赤裸的"},
+  {word: "invaluable", definition: "very important or useful", chinese: "非常寶貴的"},
+  {word: "encouragement", definition: "words or actions that make a person feel more confident about doing something", chinese: "鼓勵；鼓舞"},
+  {word: "encourage", definition: "to give someone support, confidence, or hope", chinese: "鼓勵"},
+  {word: "discourage", definition: "to prevent or try to prevent someone from doing something", chinese: "阻止；勸阻"},
+  {word: "concert", definition: "a musical performance or show given in a public place", chinese: "音樂會"},
+  {word: "receive", definition: "to be sent or given something", chinese: "收到；獲得"},
+  {word: "dazzle", definition: "to amaze someone with an impressive quality", chinese: "使讚歎；使傾倒"},
+  {word: "potential", definition: "qualities that could be developed and bring a person success", chinese: "潛力"},
+  {word: "scream", definition: "a loud high cry made when hurt, frightened, or excited", chinese: "尖叫"},
+  {word: "dizzy", definition: "feeling that you are losing balance and everything is spinning around", chinese: "頭暈目眩的"},
+  {word: "overseas", definition: "in or to a foreign country, usually one across an ocean", chinese: "在海外；到海外"},
+  {word: "determination", definition: "the quality of being resolute or persistent in achieving something", chinese: "決心"},
+  {word: "determine", definition: "to decide or influence something", chinese: "決定；影響"},
+  {word: "faith", definition: "trust in something or confidence that someone will do something specific", chinese: "信心；信任"},
+  {word: "faithful", definition: "remaining loyal and true to someone or something", chinese: "忠誠的；忠實的"},
+  {word: "pursue", definition: "to strive to achieve or follow something over time", chinese: "追求；從事"},
+  {word: "pursuit", definition: "the act of striving for or seeking something", chinese: "追求"},
+  {word: "slum", definition: "a densely populated urban area characterized by poverty", chinese: "貧民窟"},
+  {word: "unload", definition: "to remove cargo or goods from a vehicle", chinese: "卸下"},
+  {word: "screech", definition: "a high-pitched, piercing noise", chinese: "尖銳刺耳的聲音"},
+  {word: "harmoniously", definition: "in a way that is peaceful and in agreement", chinese: "和諧地"},
+  {word: "orchestra", definition: "a large group of musicians playing together, typically classical music", chinese: "管弦樂團"},
+  {word: "glaring", definition: "shining intensely and blindingly", chinese: "刺眼的；炫目的"}
+];
+
+const beeStages = [
+  { score: 5, title: "Baby Bee" },
+  { score: 10, title: "Worker Bee" },
+  { score: 15, title: "Drone Bee" },
+  { score: 20, title: "Queen Bee" }
+];
+
+let currentWord = null;
+let score = 0;
+let gameStarted = false;
+
+const startBtn = document.getElementById('startBtn');
+const speakBtn = document.getElementById('speakBtn');
+const userInput = document.getElementById('userInput');
+const wordDisplay = document.getElementById('wordDisplay');
+const feedback = document.getElementById('feedback');
+const scoreDisplay = document.getElementById('score');
+const beeIcon = document.getElementById('beeIcon');
+const levelUp = document.getElementById('levelUp');
+
+function speak(text) {
+  const utterance = new SpeechSynthesisUtterance(text);
+  utterance.rate = 0.9;
+  speechSynthesis.speak(utterance);
+}
+
+function getRandomWord() {
+  return words[Math.floor(Math.random() * words.length)];
+}
+
+function checkBeeLevel(score) {
+  for (let stage of beeStages) {
+    if (score === stage.score) {
+      beeIcon.classList.add('bee-grow');
+      levelUp.textContent = `Congratulations! You're now a ${stage.title}! 🎉`;
+      if (stage.score === 20) {
+        setTimeout(() => {
+          endGame();
+        }, 1500);
+      }
+      return;
+    }
+  }
+}
+
+function endGame() {
+  gameStarted = false;
+  wordDisplay.textContent = "Congratulations! 👑";
+  userInput.disabled = true;
+  speakBtn.disabled = true;
+  startBtn.disabled = true;
+  feedback.textContent = "Game Complete! You're a spelling master! (Fresh the page to play again :) )";
+}
+
+function checkAnswer() {
+  const userAnswer = userInput.value.trim().toLowerCase();
+  if (userAnswer === currentWord.word.toLowerCase()) {
+    score++;
+    feedback.textContent = `Correct! 🎉 Definition: ${currentWord.definition} | 中文: ${currentWord.chinese}`;
+    feedback.className = "feedback correct";
+    
+    if (score % 5 === 0) {
+      checkBeeLevel(score);
+    }
+  } else {
+    feedback.textContent = `Incorrect. The correct spelling is: ${currentWord.word}`;
+    feedback.className = "feedback incorrect";
+    levelUp.textContent = "";
+  }
+  scoreDisplay.textContent = `Score: ${score}`;
+  
+  if (score < 20) {
+    setTimeout(() => {
+      userInput.value = "";
+      levelUp.textContent = "";
+      nextWord();
+    }, 3000);
+  }
+}
+
+function nextWord() {
+  currentWord = getRandomWord();
+  wordDisplay.textContent = "Listen to the word";
+  feedback.textContent = "";
+  feedback.className = "feedback";
+  speak(currentWord.word);
+}
+
+startBtn.addEventListener('click', () => {
+  if (!gameStarted) {
+    gameStarted = true;
+    startBtn.textContent = "Submit";
+    userInput.disabled = false;
+    speakBtn.disabled = false;
+    nextWord();
+  } else {
+    checkAnswer();
+  }
+});
+
+speakBtn.addEventListener('click', () => {
+  if (currentWord) {
+    speak(currentWord.word);
+  }
+});
+
+userInput.addEventListener('keypress', (e) => {
+  if (e.key === 'Enter' && gameStarted) {
+    checkAnswer();
+  }
+});
+</script>
+</body></html>
